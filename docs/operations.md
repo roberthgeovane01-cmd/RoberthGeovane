@@ -28,6 +28,17 @@ npm run build
   aguardar OCR explícito;
 - falhas ficam visíveis como `failed` e são registradas em `processing_jobs`.
 
+## Memória documental
+
+- somente versões com `extraction_status = ready` podem iniciar a construção;
+- o usuário precisa autorizar explicitamente o processamento por IA;
+- `processing_jobs` registra correlação, etapa atual, progresso e erro seguro;
+- `memory_revision` torna reconstruções idempotentes;
+- os chunks são gerados antes da IA e podem ficar em `waiting_for_ai`;
+- embeddings de espaços incompatíveis nunca são reutilizados em conjunto;
+- falhas transitórias são retomadas pelo Workflow sem repetir etapas concluídas;
+- uma reconstrução substitui derivados ativos da versão, preservando o original.
+
 ## Incidente
 
 1. confirmar o status HTTP público;

@@ -1,8 +1,18 @@
 import Link from "next/link";
-import { ArrowLeft, Download, FileText, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  BrainCircuit,
+  CheckCircle2,
+  Download,
+  FileText,
+  ShieldCheck,
+} from "lucide-react";
 import { notFound } from "next/navigation";
 
+import { BuildMemoryForm } from "@/components/memory/build-memory-form";
 import { Button } from "@/components/ui/button";
+import { isAiGatewayConfigured } from "@/lib/memory/ai-config";
+import type { Tables } from "@/types/database";
 import { createClient } from "@/utils/supabase/server";
 
 type SourcePageProps = {
@@ -15,6 +25,15 @@ const extractionLabels: Record<string, string> = {
   processing: "Extraindo texto",
   queued: "Aguardando extração",
   ready: "Texto extraído",
+};
+
+const memoryLabels: Record<string, string> = {
+  blocked: "Bloqueada até concluir OCR",
+  failed: "Falha recuperável",
+  pending: "Aguardando construção",
+  processing: "Construção em andamento",
+  ready: "Memória pronta",
+  waiting_for_ai: "Aguardando provedor de IA",
 };
 
 export default async function SourcePage({ params }: SourcePageProps) {
@@ -33,20 +52,74 @@ export default async function SourcePage({ params }: SourcePageProps) {
   const { data: versions } = await supabase
     .from("source_versions")
     .select(
-      "id, version, original_filename, mime_type, byte_size, sha256, extraction_status, page_count, created_at",
+      "id, version, original_filename, mime_type, byte_size, sha256, extraction_status, memory_status, memory_built_at, memory_error, page_count, created_at",
     )
     .eq("source_id", source.id)
     .order("version", { ascending: false });
   const currentVersion = versions?.[0];
+  let sections: Array<
+    Pick<
+      Tables<"source_sections">,
+      "id" | "ordinal" | "level" | "heading" | "locator" | "content"
+    >
+  > = [];
+  let chunkCount = 0;
+  let summaryCount = 0;
+  let claimCount = 0;
+  let conceptCount = 0;
+  let latestJob: Pick<
+    Tables<"processing_jobs">,
+    "status" | "current_step" | "progress" | "error_message"
+  > | null = null;
 
-  const { data: sections } = currentVersion
-    ? await supabase
+  if (currentVersion) {
+    const [
+      sectionsResult,
+      chunksResult,
+      summariesResult,
+      claimsResult,
+      conceptsResult,
+      jobResult,
+    ] = await Promise.all([
+      supabase
         .from("source_sections")
         .select("id, ordinal, level, heading, locator, content")
         .eq("source_version_id", currentVersion.id)
         .order("ordinal")
-        .limit(200)
-    : { data: [] };
+        .limit(200),
+      supabase
+        .from("source_chunks")
+        .select("id", { count: "exact", head: true })
+        .eq("source_version_id", currentVersion.id),
+      supabase
+        .from("source_summaries")
+        .select("id", { count: "exact", head: true })
+        .eq("source_version_id", currentVersion.id)
+        .eq("status", "active"),
+      supabase
+        .from("claims")
+        .select("id", { count: "exact", head: true })
+        .eq("source_version_id", currentVersion.id),
+      supabase
+        .from("source_concepts")
+        .select("id", { count: "exact", head: true })
+        .eq("source_id", source.id),
+      supabase
+        .from("processing_jobs")
+        .select("status, current_step, progress, error_message")
+        .eq("entity_id", currentVersion.id)
+        .eq("job_type", "source_memory_build")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    sections = sectionsResult.data ?? [];
+    chunkCount = chunksResult.count ?? 0;
+    summaryCount = summariesResult.count ?? 0;
+    claimCount = claimsResult.count ?? 0;
+    conceptCount = conceptsResult.count ?? 0;
+    latestJob = jobResult.data;
+  }
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -129,6 +202,104 @@ export default async function SourcePage({ params }: SourcePageProps) {
                 : "Verificação pendente"}
             </p>
           </div>
+        </section>
+      ) : null}
+
+      {currentVersion ? (
+        <section className="mt-9" aria-labelledby="memory-build-title">
+          <div className="flex items-start gap-3">
+            <BrainCircuit
+              aria-hidden="true"
+              className="mt-1 text-[#a6751d]"
+              size={22}
+            />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a6751d]">
+                Memória estruturada
+              </p>
+              <h2
+                className="mt-2 text-2xl font-semibold"
+                id="memory-build-title"
+              >
+                {memoryLabels[currentVersion.memory_status] ??
+                  "Estado desconhecido"}
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#637083]">
+                O documento só é marcado como pronto depois de receber resumos,
+                vetores, conceitos e afirmações rastreáveis.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-4">
+            {[
+              ["Chunks", chunkCount],
+              ["Resumos", summaryCount],
+              ["Conceitos", conceptCount],
+              ["Afirmações", claimCount],
+            ].map(([label, count]) => (
+              <div
+                className="rounded-2xl border border-[#17233e]/10 bg-white p-4"
+                key={label}
+              >
+                <p className="text-xs uppercase tracking-[0.16em] text-[#637083]">
+                  {label}
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-[#17233e]">
+                  {count}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {latestJob && currentVersion.memory_status === "processing" ? (
+            <div className="mt-4 rounded-2xl border border-[#a6751d]/15 bg-[#a6751d]/5 p-5">
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <span className="font-semibold">Processamento durável</span>
+                <span>{Math.round(latestJob.progress * 100)}%</span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                <div
+                  className="h-full rounded-full bg-[#a6751d] transition-[width]"
+                  style={{ width: `${latestJob.progress * 100}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-[#637083]">
+                Etapa: {latestJob.current_step ?? "preparando"}
+              </p>
+            </div>
+          ) : null}
+
+          {currentVersion.memory_status === "ready" ? (
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-[#536a5b]/8 p-4 text-sm font-semibold text-[#536a5b]">
+              <CheckCircle2 aria-hidden="true" size={18} />
+              Memória concluída
+              {currentVersion.memory_built_at
+                ? ` em ${new Intl.DateTimeFormat("pt-BR", {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                    timeZone: "America/Sao_Paulo",
+                  }).format(new Date(currentVersion.memory_built_at))}`
+                : ""}
+            </div>
+          ) : null}
+
+          {currentVersion.memory_error ? (
+            <p className="mt-4 rounded-2xl border border-[#8a3d32]/15 bg-[#8a3d32]/5 p-4 text-sm text-[#8a3d32]">
+              {currentVersion.memory_error}
+            </p>
+          ) : null}
+
+          {currentVersion.extraction_status === "ready" ? (
+            <div className="mt-5">
+              <BuildMemoryForm
+                aiConfigured={isAiGatewayConfigured()}
+                memoryStatus={currentVersion.memory_status}
+                sourceId={source.id}
+                versionId={currentVersion.id}
+              />
+            </div>
+          ) : null}
         </section>
       ) : null}
 

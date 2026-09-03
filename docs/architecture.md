@@ -33,9 +33,23 @@ O bucket `library-originals` é privado. O download ocorre por rota autenticada
 que emite uma URL assinada de curta duração depois de uma leitura protegida por
 RLS. O original e o texto derivado permanecem separados.
 
+## Construção da memória
+
+1. uma Server Action autentica novamente o usuário e registra o consentimento;
+2. um Workflow durável divide o trabalho em etapas persistentes e repetíveis;
+3. as seções geram chunks determinísticos com hash e localização na fonte;
+4. o Gateway produz embeddings e saídas estruturadas em lotes pequenos;
+5. resumos, conceitos e claims registram modelo, prompt e versão usados;
+6. cada claim só é persistido quando a evidência citada existe literalmente no
+   chunk original;
+7. o documento só recebe `memory_status = ready` após a finalização integral.
+
+O conteúdo documental é sempre tratado como dado não confiável. Os prompts
+proíbem obedecer instruções existentes nos arquivos e não permitem acrescentar
+fatos externos.
+
 ## Limites atuais
 
-As fases 0 a 2 estabelecem infraestrutura, Auth, schema, isolamento, navegação e
-ingestão documental inicial. Chunking semântico, embeddings, retrieval, áudio e
-geração permanecem desativados até suas fases específicas possuírem testes de
-aceitação.
+As fases 0 a 3 estabelecem infraestrutura, Auth, schema, isolamento, ingestão e
+memória documental estruturada. Retrieval, áudio e geração de reflexões
+permanecem desativados até suas fases específicas possuírem testes de aceitação.

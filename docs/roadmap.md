@@ -5,8 +5,8 @@
 | 0    | Inicialização, ferramentas e CI                          | concluída |
 | 1    | Auth, banco, RLS, Storage e extensões                    | concluída |
 | 2    | Biblioteca, upload e extração                            | concluída |
-| 3    | Chunks, resumos, embeddings, conceitos e claims          | próxima   |
-| 4    | Retrieval lexical, vetorial, híbrido e reranking         | pendente  |
+| 3    | Chunks, resumos, embeddings, conceitos e claims          | concluída |
+| 4    | Retrieval lexical, vetorial, híbrido e reranking         | próxima   |
 | 5    | Evidências, conflitos, analista e dossiê                 | pendente  |
 | 6    | Dataset fictício e avaliações                            | pendente  |
 | 7    | UI completa de Biblioteca e Memória                      | pendente  |
@@ -27,5 +27,16 @@
 - listagem, detalhe e download temporário autenticado;
 - registro final do processamento em `processing_jobs`.
 
-A Fase 3 transformará as seções preservadas em chunks versionados, resumos,
-embeddings, conceitos e claims. OCR automatizado permanece uma entrega posterior.
+## Critérios fechados na Fase 3
+
+- chunking determinístico que respeita seções, parágrafos e limites semânticos;
+- hash, localizador, estimativa de tokens e versão do chunker em cada chunk;
+- espaços de embedding que impedem mistura de provedor, modelo, dimensão e versão;
+- prompts centralizados, versionados e protegidos contra instruções nas fontes;
+- resumos por seção e fonte, conceitos candidatos e claims com evidência literal;
+- processamento durável em lotes, com retomada, idempotência e progresso;
+- consentimento explícito antes do envio do texto ao provedor de IA;
+- painel de memória e estado detalhado por documento.
+
+OCR automatizado permanece uma entrega posterior. A Fase 4 usará os artefatos
+da Fase 3 para retrieval lexical, vetorial e híbrido com reranking.

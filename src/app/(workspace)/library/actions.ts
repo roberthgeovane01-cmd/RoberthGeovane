@@ -328,6 +328,9 @@ export async function processUploadedSource(input: {
       .update({
         extracted_text: extraction.extractedText || null,
         extraction_status: extractionStatus,
+        memory_error: null,
+        memory_status:
+          extraction.quality === "ocr_required" ? "blocked" : "pending",
         page_count: extraction.pageCount,
       })
       .eq("id", version.id);
@@ -342,7 +345,7 @@ export async function processUploadedSource(input: {
           extraction_warnings: extraction.warnings,
           section_count: extraction.sections.length,
         },
-        status: extraction.quality === "ocr_required" ? "processing" : "ready",
+        status: "processing",
       })
       .eq("id", version.source_id);
     if (sourceUpdateError) throw new Error("source_update_failed");
@@ -373,7 +376,7 @@ export async function processUploadedSource(input: {
       message:
         extraction.quality === "ocr_required"
           ? "Original preservado. Este PDF precisa de OCR antes de entrar na memória."
-          : "Documento preservado e texto extraído com sucesso.",
+          : "Documento preservado e texto extraído. Agora ele pode entrar na memória.",
       ok: true,
       quality: extraction.quality,
     };

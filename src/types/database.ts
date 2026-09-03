@@ -265,13 +265,16 @@ export type Database = {
       }
       claims: {
         Row: {
+          claim_hash: string
           claim_type: string
           confidence: number
           created_at: string
           created_by: string
           embedding: string | null
+          embedding_space_id: string | null
           id: string
           metadata: Json
+          prompt_version_id: string | null
           search_vector: unknown
           source_id: string | null
           source_section_id: string | null
@@ -279,16 +282,20 @@ export type Database = {
           statement: string
           status: string
           updated_at: string
+          version: number
           workspace_id: string
         }
         Insert: {
+          claim_hash: string
           claim_type?: string
           confidence?: number
           created_at?: string
           created_by: string
           embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           metadata?: Json
+          prompt_version_id?: string | null
           search_vector?: unknown
           source_id?: string | null
           source_section_id?: string | null
@@ -296,16 +303,20 @@ export type Database = {
           statement: string
           status?: string
           updated_at?: string
+          version?: number
           workspace_id: string
         }
         Update: {
+          claim_hash?: string
           claim_type?: string
           confidence?: number
           created_at?: string
           created_by?: string
           embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           metadata?: Json
+          prompt_version_id?: string | null
           search_vector?: unknown
           source_id?: string | null
           source_section_id?: string | null
@@ -313,9 +324,24 @@ export type Database = {
           statement?: string
           status?: string
           updated_at?: string
+          version?: number
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "claims_embedding_space_id_fkey"
+            columns: ["embedding_space_id"]
+            isOneToOne: false
+            referencedRelation: "embedding_spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claims_prompt_version_id_fkey"
+            columns: ["prompt_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "claims_source_id_fkey"
             columns: ["source_id"]
@@ -352,6 +378,7 @@ export type Database = {
           created_by: string
           description: string | null
           embedding: string | null
+          embedding_space_id: string | null
           id: string
           name: string
           normalized_name: string
@@ -364,6 +391,7 @@ export type Database = {
           created_by: string
           description?: string | null
           embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           name: string
           normalized_name: string
@@ -376,6 +404,7 @@ export type Database = {
           created_by?: string
           description?: string | null
           embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           name?: string
           normalized_name?: string
@@ -385,7 +414,61 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "concepts_embedding_space_id_fkey"
+            columns: ["embedding_space_id"]
+            isOneToOne: false
+            referencedRelation: "embedding_spaces"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "concepts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      embedding_spaces: {
+        Row: {
+          created_at: string
+          created_by: string
+          dimensions: number
+          id: string
+          model: string
+          provider: string
+          status: string
+          updated_at: string
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          dimensions: number
+          id?: string
+          model: string
+          provider: string
+          status?: string
+          updated_at?: string
+          version?: number
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          dimensions?: number
+          id?: string
+          model?: string
+          provider?: string
+          status?: string
+          updated_at?: string
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "embedding_spaces_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -899,8 +982,10 @@ export type Database = {
         Row: {
           attempt_count: number
           completed_at: string | null
+          correlation_id: string
           created_at: string
           created_by: string
+          current_step: string | null
           entity_id: string | null
           entity_type: string
           error_message: string | null
@@ -911,6 +996,7 @@ export type Database = {
           locked_by: string | null
           max_attempts: number
           payload: Json
+          progress: number
           result: Json | null
           run_after: string
           status: string
@@ -920,8 +1006,10 @@ export type Database = {
         Insert: {
           attempt_count?: number
           completed_at?: string | null
+          correlation_id?: string
           created_at?: string
           created_by: string
+          current_step?: string | null
           entity_id?: string | null
           entity_type: string
           error_message?: string | null
@@ -932,6 +1020,7 @@ export type Database = {
           locked_by?: string | null
           max_attempts?: number
           payload?: Json
+          progress?: number
           result?: Json | null
           run_after?: string
           status?: string
@@ -941,8 +1030,10 @@ export type Database = {
         Update: {
           attempt_count?: number
           completed_at?: string | null
+          correlation_id?: string
           created_at?: string
           created_by?: string
+          current_step?: string | null
           entity_id?: string | null
           entity_type?: string
           error_message?: string | null
@@ -953,6 +1044,7 @@ export type Database = {
           locked_by?: string | null
           max_attempts?: number
           payload?: Json
+          progress?: number
           result?: Json | null
           run_after?: string
           status?: string
@@ -1658,10 +1750,13 @@ export type Database = {
       }
       source_chunks: {
         Row: {
+          chunker_version: number
           content: string
+          content_hash: string
           created_at: string
           created_by: string
           embedding: string | null
+          embedding_space_id: string | null
           id: string
           locator: Json
           metadata: Json
@@ -1676,10 +1771,13 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          chunker_version?: number
           content: string
+          content_hash: string
           created_at?: string
           created_by: string
           embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           locator?: Json
           metadata?: Json
@@ -1694,10 +1792,13 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          chunker_version?: number
           content?: string
+          content_hash?: string
           created_at?: string
           created_by?: string
           embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           locator?: Json
           metadata?: Json
@@ -1712,6 +1813,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "source_chunks_embedding_space_id_fkey"
+            columns: ["embedding_space_id"]
+            isOneToOne: false
+            referencedRelation: "embedding_spaces"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "source_chunks_source_id_fkey"
             columns: ["source_id"]
@@ -1876,11 +1984,14 @@ export type Database = {
       source_summaries: {
         Row: {
           content: string
+          content_hash: string
           created_at: string
           created_by: string
           id: string
           metadata: Json
           model: string | null
+          model_provider: string | null
+          prompt_version_id: string | null
           source_id: string
           source_section_id: string | null
           source_version_id: string | null
@@ -1891,11 +2002,14 @@ export type Database = {
         }
         Insert: {
           content: string
+          content_hash: string
           created_at?: string
           created_by: string
           id?: string
           metadata?: Json
           model?: string | null
+          model_provider?: string | null
+          prompt_version_id?: string | null
           source_id: string
           source_section_id?: string | null
           source_version_id?: string | null
@@ -1906,11 +2020,14 @@ export type Database = {
         }
         Update: {
           content?: string
+          content_hash?: string
           created_at?: string
           created_by?: string
           id?: string
           metadata?: Json
           model?: string | null
+          model_provider?: string | null
+          prompt_version_id?: string | null
           source_id?: string
           source_section_id?: string | null
           source_version_id?: string | null
@@ -1920,6 +2037,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "source_summaries_prompt_version_id_fkey"
+            columns: ["prompt_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "source_summaries_source_id_fkey"
             columns: ["source_id"]
@@ -2013,6 +2137,10 @@ export type Database = {
           extracted_text: string | null
           extraction_status: string
           id: string
+          memory_built_at: string | null
+          memory_error: string | null
+          memory_revision: number
+          memory_status: string
           mime_type: string
           original_filename: string
           page_count: number | null
@@ -2031,6 +2159,10 @@ export type Database = {
           extracted_text?: string | null
           extraction_status?: string
           id?: string
+          memory_built_at?: string | null
+          memory_error?: string | null
+          memory_revision?: number
+          memory_status?: string
           mime_type: string
           original_filename: string
           page_count?: number | null
@@ -2049,6 +2181,10 @@ export type Database = {
           extracted_text?: string | null
           extraction_status?: string
           id?: string
+          memory_built_at?: string | null
+          memory_error?: string | null
+          memory_revision?: number
+          memory_status?: string
           mime_type?: string
           original_filename?: string
           page_count?: number | null
