@@ -6,7 +6,7 @@
 | 1    | Auth, banco, RLS, Storage e extensões                    | concluída |
 | 2    | Biblioteca, upload e extração                            | concluída |
 | 3    | Chunks, resumos, embeddings, conceitos e claims          | concluída |
-| 4    | Retrieval lexical, vetorial, híbrido e reranking         | próxima   |
+| 4    | Retrieval lexical, vetorial, híbrido e reranking         | concluída |
 | 5    | Evidências, conflitos, analista e dossiê                 | pendente  |
 | 6    | Dataset fictício e avaliações                            | pendente  |
 | 7    | UI completa de Biblioteca e Memória                      | pendente  |
@@ -38,5 +38,18 @@
 - consentimento explícito antes do envio do texto ao provedor de IA;
 - painel de memória e estado detalhado por documento.
 
-OCR automatizado permanece uma entrega posterior. A Fase 4 usará os artefatos
-da Fase 3 para retrieval lexical, vetorial e híbrido com reranking.
+## Critérios fechados na Fase 4
+
+- busca textual em português e busca vetorial filtrada pelo espaço de embedding;
+- fusão por Reciprocal Rank Fusion entre resultados lexicais e semânticos;
+- recuperação paralela nos níveis global, intermediário e de evidência;
+- expansão determinística em até três consultas, sem antecipar o Query Planner;
+- filtros por autor, tipo de fonte e autoridade mínima;
+- reranqueamento por relevância, autoridade, validade temporal e especificidade;
+- limite por fonte para preservar diversidade sem apagar divergências;
+- persistência da sessão, consultas, candidatos, scores, selecionados e descartados;
+- prova transacional com fontes fictícias, diversidade e hierarquia, seguida de rollback;
+- testes de duplicidade, diversidade e prompt malicioso tratado como dado.
+
+OCR automatizado permanece uma entrega posterior. A Fase 5 parte desses
+resultados para classificar evidências, detectar conflitos e montar dossiês.

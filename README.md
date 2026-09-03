@@ -7,8 +7,8 @@ conflitos.
 
 ## Estado atual
 
-As fases de inicialização, fundação Supabase, Biblioteca e memória estruturada
-estão implementadas:
+As fases de inicialização, fundação Supabase, Biblioteca, memória estruturada e
+recuperação híbrida estão implementadas:
 
 - Next.js 16, React 19, TypeScript e Tailwind CSS;
 - componentes no padrão shadcn/ui;
@@ -26,11 +26,12 @@ estão implementadas:
 - embeddings compatíveis por espaço de modelo, dimensão e versão;
 - conceitos candidatos e afirmações ligadas a evidências literais;
 - processamento durável, idempotente, retomável e com progresso visível;
+- busca lexical e vetorial em três níveis, com fusão RRF e multi-consulta;
+- filtros, reranqueamento, diversidade por fonte e trilha de auditoria dos descartes;
 - rotas-base da aplicação;
 - testes, formatação, lint, TypeScript, build e CI.
 
-A próxima entrega é a Fase 4: recuperação lexical, vetorial e híbrida com
-reranking.
+A próxima entrega é a Fase 5: classificação de evidências, conflitos e dossiê.
 
 ## Desenvolvimento local
 

@@ -821,6 +821,46 @@ async function embedDerivedBatchStep(
   }
 }
 
+async function embedSummaryBatchStep(
+  input: MemoryWorkflowInput,
+  embeddingSpaceId: string,
+  offset: number,
+) {
+  "use step";
+
+  const supabase = createWorkflowClient(input);
+  const { data, error } = await supabase
+    .from("source_summaries")
+    .select("id, content, embedding, embedding_space_id")
+    .eq("source_version_id", input.versionId)
+    .eq("status", "active")
+    .order("created_at")
+    .range(offset, offset + EMBEDDING_BATCH_SIZE - 1);
+  safeDatabaseError(error, "summaries_load_failed");
+  const pending = (data ?? []).filter(
+    (summary) =>
+      !summary.embedding || summary.embedding_space_id !== embeddingSpaceId,
+  );
+  if (pending.length === 0) return;
+  try {
+    const embeddings = await new GatewayEmbeddingProvider().embedTexts(
+      pending.map((summary) => summary.content),
+    );
+    for (const [index, summary] of pending.entries()) {
+      const { error: updateError } = await supabase
+        .from("source_summaries")
+        .update({
+          embedding: vectorToPostgres(embeddings[index] ?? []),
+          embedding_space_id: embeddingSpaceId,
+        })
+        .eq("id", summary.id);
+      safeDatabaseError(updateError, "summary_embedding_update_failed");
+    }
+  } catch (aiError) {
+    handleAiError(aiError);
+  }
+}
+
 async function finalizeMemoryStep(
   input: MemoryWorkflowInput,
   chunkCount: number,
@@ -964,6 +1004,14 @@ export async function buildSourceMemoryWorkflow(input: MemoryWorkflowInput) {
       await consolidateSectionStep(input, setup, sectionId);
     }
     await createGlobalSummariesStep(input, setup);
+
+    for (
+      let offset = 0;
+      offset < indexed.sectionIds.length + 2;
+      offset += EMBEDDING_BATCH_SIZE
+    ) {
+      await embedSummaryBatchStep(input, setup.embeddingSpaceId, offset);
+    }
 
     const derived = await getDerivedCountsStep(input);
     for (

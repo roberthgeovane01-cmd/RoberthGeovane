@@ -1537,9 +1537,11 @@ export type Database = {
       }
       retrieval_hits: {
         Row: {
+          authority_score: number | null
           claim_id: string | null
           created_at: string
           created_by: string
+          diversity_penalty: number
           entity_type: string
           final_score: number | null
           id: string
@@ -1549,18 +1551,27 @@ export type Database = {
           rationale: string | null
           rerank_score: number | null
           retrieval_query_id: string | null
+          retrieval_level: string | null
           retrieval_session_id: string
+          rrf_score: number | null
           selected: boolean
           source_chunk_id: string | null
+          source_id: string | null
+          source_section_id: string | null
+          source_summary_id: string | null
+          specificity_score: number | null
           status: string
+          temporal_score: number | null
           updated_at: string
           vector_score: number | null
           workspace_id: string
         }
         Insert: {
+          authority_score?: number | null
           claim_id?: string | null
           created_at?: string
           created_by: string
+          diversity_penalty?: number
           entity_type: string
           final_score?: number | null
           id?: string
@@ -1570,18 +1581,27 @@ export type Database = {
           rationale?: string | null
           rerank_score?: number | null
           retrieval_query_id?: string | null
+          retrieval_level?: string | null
           retrieval_session_id: string
+          rrf_score?: number | null
           selected?: boolean
           source_chunk_id?: string | null
+          source_id?: string | null
+          source_section_id?: string | null
+          source_summary_id?: string | null
+          specificity_score?: number | null
           status?: string
+          temporal_score?: number | null
           updated_at?: string
           vector_score?: number | null
           workspace_id: string
         }
         Update: {
+          authority_score?: number | null
           claim_id?: string | null
           created_at?: string
           created_by?: string
+          diversity_penalty?: number
           entity_type?: string
           final_score?: number | null
           id?: string
@@ -1591,10 +1611,17 @@ export type Database = {
           rationale?: string | null
           rerank_score?: number | null
           retrieval_query_id?: string | null
+          retrieval_level?: string | null
           retrieval_session_id?: string
+          rrf_score?: number | null
           selected?: boolean
           source_chunk_id?: string | null
+          source_id?: string | null
+          source_section_id?: string | null
+          source_summary_id?: string | null
+          specificity_score?: number | null
           status?: string
+          temporal_score?: number | null
           updated_at?: string
           vector_score?: number | null
           workspace_id?: string
@@ -1636,6 +1663,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "retrieval_hits_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retrieval_hits_source_section_id_fkey"
+            columns: ["source_section_id"]
+            isOneToOne: false
+            referencedRelation: "source_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retrieval_hits_source_summary_id_fkey"
+            columns: ["source_summary_id"]
+            isOneToOne: false
+            referencedRelation: "source_summaries"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "retrieval_hits_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
@@ -1649,8 +1697,10 @@ export type Database = {
           created_at: string
           created_by: string
           embedding: string | null
+          embedding_space_id: string | null
           id: string
           ordinal: number
+          parameters: Json
           query_text: string
           query_type: string
           retrieval_session_id: string
@@ -1662,8 +1712,10 @@ export type Database = {
           created_at?: string
           created_by: string
           embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           ordinal?: number
+          parameters?: Json
           query_text: string
           query_type: string
           retrieval_session_id: string
@@ -1675,8 +1727,10 @@ export type Database = {
           created_at?: string
           created_by?: string
           embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           ordinal?: number
+          parameters?: Json
           query_text?: string
           query_type?: string
           retrieval_session_id?: string
@@ -1685,6 +1739,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "retrieval_queries_embedding_space_id_fkey"
+            columns: ["embedding_space_id"]
+            isOneToOne: false
+            referencedRelation: "embedding_spaces"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "retrieval_queries_retrieval_session_id_fkey"
             columns: ["retrieval_session_id"]
@@ -1987,11 +2048,14 @@ export type Database = {
           content_hash: string
           created_at: string
           created_by: string
+          embedding: string | null
+          embedding_space_id: string | null
           id: string
           metadata: Json
           model: string | null
           model_provider: string | null
           prompt_version_id: string | null
+          search_vector: unknown
           source_id: string
           source_section_id: string | null
           source_version_id: string | null
@@ -2005,11 +2069,14 @@ export type Database = {
           content_hash: string
           created_at?: string
           created_by: string
+          embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           metadata?: Json
           model?: string | null
           model_provider?: string | null
           prompt_version_id?: string | null
+          search_vector?: unknown
           source_id: string
           source_section_id?: string | null
           source_version_id?: string | null
@@ -2023,11 +2090,14 @@ export type Database = {
           content_hash?: string
           created_at?: string
           created_by?: string
+          embedding?: string | null
+          embedding_space_id?: string | null
           id?: string
           metadata?: Json
           model?: string | null
           model_provider?: string | null
           prompt_version_id?: string | null
+          search_vector?: unknown
           source_id?: string
           source_section_id?: string | null
           source_version_id?: string | null
@@ -2037,6 +2107,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "source_summaries_embedding_space_id_fkey"
+            columns: ["embedding_space_id"]
+            isOneToOne: false
+            referencedRelation: "embedding_spaces"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "source_summaries_prompt_version_id_fkey"
             columns: ["prompt_version_id"]
@@ -2216,6 +2293,7 @@ export type Database = {
       sources: {
         Row: {
           author_name: string | null
+          authority_level: number
           created_at: string
           created_by: string
           id: string
@@ -2226,10 +2304,13 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          valid_from: string | null
+          valid_until: string | null
           workspace_id: string
         }
         Insert: {
           author_name?: string | null
+          authority_level?: number
           created_at?: string
           created_by: string
           id?: string
@@ -2240,10 +2321,13 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
           workspace_id: string
         }
         Update: {
           author_name?: string | null
+          authority_level?: number
           created_at?: string
           created_by?: string
           id?: string
@@ -2254,6 +2338,8 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
           workspace_id?: string
         }
         Relationships: [
@@ -2646,7 +2732,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_memory_hybrid: {
+        Args: {
+          p_embedding_space_id?: string | null
+          p_match_count?: number
+          p_query_embedding?: string | null
+          p_query_text: string
+          p_rrf_k?: number
+          p_source_ids?: string[] | null
+          p_workspace_id: string
+        }
+        Returns: {
+          authority_level: number
+          content: string
+          entity_id: string
+          entity_type: string
+          lexical_score: number | null
+          retrieval_level: string
+          rrf_score: number
+          source_id: string
+          source_section_id: string | null
+          valid_from: string | null
+          valid_until: string | null
+          vector_score: number | null
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

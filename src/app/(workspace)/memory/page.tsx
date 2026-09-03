@@ -118,6 +118,12 @@ export default async function MemoryPage() {
               Resumos, conceitos e afirmações permanecem ligados aos chunks e às
               fontes que lhes dão origem. Conceitos são candidatos — não fatos.
             </p>
+            <Button
+              asChild
+              className="mt-6 bg-[#d4ae67] text-[#17233e] hover:bg-[#e2c384]"
+            >
+              <Link href="/memory/search">Buscar na memória</Link>
+            </Button>
           </div>
         </div>
       </header>
