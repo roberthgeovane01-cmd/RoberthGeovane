@@ -7,7 +7,7 @@ conflitos.
 
 ## Estado atual
 
-As fases de inicialização e fundação Supabase estão implementadas:
+As fases de inicialização, fundação Supabase e Biblioteca estão implementadas:
 
 - Next.js 16, React 19, TypeScript e Tailwind CSS;
 - componentes no padrão shadcn/ui;
@@ -16,10 +16,14 @@ As fases de inicialização e fundação Supabase estão implementadas:
 - Row Level Security por workspace;
 - pgvector, busca textual em português e índices HNSW;
 - três buckets privados;
+- upload de PDF textual, DOCX, TXT e Markdown até 50 MB;
+- upload retomável, hash SHA-256 e bloqueio de duplicados;
+- preservação privada do original e download por URL temporária;
+- extração estruturada e retenção segura de PDFs que exigem OCR;
 - rotas-base da aplicação;
 - testes, formatação, lint, TypeScript, build e CI.
 
-A próxima entrega é a Fase 2: Biblioteca, upload, extração e interface mínima.
+A próxima entrega é a Fase 3: chunks, resumos, embeddings, conceitos e claims.
 
 ## Desenvolvimento local
 
