@@ -17,3 +17,17 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+
+* {
+  border-color: color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+::selection {
+  background: color-mix(in srgb, #a6751d 28%, transparent);
+}
+
+button,
+a,
+input {
+  -webkit-tap-highlight-color: transparent;
+}

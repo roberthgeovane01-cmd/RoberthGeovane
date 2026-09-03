@@ -1,29 +1,63 @@
 # Memória Reflexiva
 
-Base greenfield do aplicativo Memória Reflexiva, com Next.js App Router e
-Supabase SSR.
+Aplicativo de biblioteca, memória investigativa e escrita reflexiva. O princípio
+do produto é **memória antes da escrita**: nenhuma reflexão deve ser gerada antes
+da revisão da fala, da recuperação de fontes e da análise de evidências e
+conflitos.
+
+## Estado atual
+
+As fases de inicialização e fundação Supabase estão implementadas:
+
+- Next.js 16, React 19, TypeScript e Tailwind CSS;
+- componentes no padrão shadcn/ui;
+- Supabase Auth com sessão SSR;
+- 39 tabelas de domínio;
+- Row Level Security por workspace;
+- pgvector, busca textual em português e índices HNSW;
+- três buckets privados;
+- rotas-base da aplicação;
+- testes, formatação, lint, TypeScript, build e CI.
+
+A próxima entrega é a Fase 2: Biblioteca, upload, extração e interface mínima.
 
 ## Desenvolvimento local
 
-1. Copie `.env.example` para `.env.local` e preencha as duas variáveis.
-2. Instale as dependências com `npm install`.
-3. Execute `npm run dev`.
-
-## Integração Supabase
-
-- `src/utils/supabase/client.ts`: cliente para componentes no navegador.
-- `src/utils/supabase/server.ts`: cliente para Server Components, Server Actions e rotas.
-- `src/utils/supabase/proxy.ts`: renovação de sessão e propagação segura de cookies.
-- `src/proxy.ts`: ponto de entrada do Proxy no Next.js 16.
-
-Somente a URL e a chave publicável usam o prefixo `NEXT_PUBLIC_`. Nunca adicione
-uma chave secreta ou `service_role` ao frontend.
-
-## Comandos
+1. Copie `.env.example` para `.env.local`.
+2. Preencha a URL e a chave publicável do projeto Supabase.
+3. Instale e valide:
 
 ```bash
-npm run lint
-npx tsc --noEmit
+npm ci
+npm run check
 npm run build
 npm run dev
 ```
+
+## Variáveis
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+```
+
+Nunca coloque uma chave secreta ou `service_role` em uma variável
+`NEXT_PUBLIC_`.
+
+## Estrutura
+
+- `src/app`: rotas públicas, autenticação e área protegida;
+- `src/components`: shell e componentes de interface;
+- `src/lib`: validações, constantes e utilitários;
+- `src/utils/supabase`: clientes de navegador, servidor e proxy;
+- `src/types/database.ts`: tipos gerados do schema remoto;
+- `supabase/migrations`: fonte de verdade do banco;
+- `docs`: arquitetura, banco, segurança, operação e roadmap.
+
+## Documentação
+
+- [Arquitetura](docs/architecture.md)
+- [Banco de dados](docs/database.md)
+- [Segurança](docs/security.md)
+- [Operações](docs/operations.md)
+- [Roadmap](docs/roadmap.md)
