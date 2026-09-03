@@ -8,7 +8,7 @@
 | 3    | Chunks, resumos, embeddings, conceitos e claims          | concluída |
 | 4    | Retrieval lexical, vetorial, híbrido e reranking         | concluída |
 | 5    | Evidências, conflitos, analista e dossiê                 | concluída |
-| 6    | Dataset fictício e avaliações                            | pendente  |
+| 6    | Dataset fictício e avaliações                            | concluída |
 | 7    | UI completa de Biblioteca e Memória                      | pendente  |
 | 8–14 | Áudio, mesa editorial, reflexão, estilo, voz e histórico | pendente  |
 | 15   | Hardening                                                | pendente  |
@@ -65,3 +65,13 @@ resultados para classificar evidências, detectar conflitos e montar dossiês.
 - rejeição determinística de referências inventadas pelo modelo;
 - tela de revisão, resolução de conflitos e aprovação do dossiê;
 - prova transacional do bloqueio e da resolução, com rollback integral.
+
+## Critérios fechados na Fase 6
+
+- dataset sintético versionado, isolado das tabelas de memória real;
+- casos de identidade, conflito factual e divergência interpretativa;
+- Precision@K, Recall@K, MRR, diversidade e cobertura de evidências;
+- agregação que preserva falhas e não avalia somente a qualidade da prosa;
+- histórico de relatórios por versão do dataset e do retrieval;
+- tabela de avaliação protegida por RLS e permissão por workspace;
+- prova transacional de persistência seguida de rollback.

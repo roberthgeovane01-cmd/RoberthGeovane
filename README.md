@@ -8,7 +8,7 @@ conflitos.
 ## Estado atual
 
 As fases de inicialização, fundação Supabase, Biblioteca, memória estruturada e
-recuperação híbrida e dossiê investigativo estão implementadas:
+recuperação híbrida, dossiê investigativo e avaliação estão implementadas:
 
 - Next.js 16, React 19, TypeScript e Tailwind CSS;
 - componentes no padrão shadcn/ui;
@@ -30,10 +30,11 @@ recuperação híbrida e dossiê investigativo estão implementadas:
 - filtros, reranqueamento, diversidade por fonte e trilha de auditoria dos descartes;
 - classificação de evidências, conflitos bloqueantes e resolução humana;
 - Dossiê de Memória estruturado com rastreabilidade obrigatória;
+- prova do cérebro versionada com métricas independentes da escrita;
 - rotas-base da aplicação;
 - testes, formatação, lint, TypeScript, build e CI.
 
-A próxima entrega é a Fase 6: dataset fictício e avaliação quantitativa.
+A próxima entrega é a Fase 7: completar a experiência de Biblioteca e Memória.
 
 ## Desenvolvimento local
 
