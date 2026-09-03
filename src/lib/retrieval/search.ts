@@ -99,9 +99,9 @@ export async function runMemoryRetrieval(
       firstQueryId ??= storedQuery.id;
       if (sourceIds.length === 0) continue;
       const { data, error } = await supabase.rpc("search_memory_hybrid", {
-        p_embedding_space_id: embedding ? embeddingSpace?.id : null,
+        p_embedding_space_id: embedding ? embeddingSpace?.id : undefined,
         p_match_count: 40,
-        p_query_embedding: embedding ? vectorToPostgres(embedding) : null,
+        p_query_embedding: embedding ? vectorToPostgres(embedding) : undefined,
         p_query_text: query,
         p_rrf_k: 60,
         p_source_ids: sourceIds,
