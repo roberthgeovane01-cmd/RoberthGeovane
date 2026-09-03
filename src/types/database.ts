@@ -535,42 +535,51 @@ export type Database = {
       }
       conflicts: {
         Row: {
+          blocks_writing: boolean
           conflict_type: string
           created_at: string
           created_by: string
           description: string
           id: string
           left_claim_id: string | null
+          left_retrieval_hit_id: string | null
           memory_dossier_id: string | null
           right_claim_id: string | null
+          right_retrieval_hit_id: string | null
           severity: string
           status: string
           updated_at: string
           workspace_id: string
         }
         Insert: {
+          blocks_writing?: boolean
           conflict_type: string
           created_at?: string
           created_by: string
           description: string
           id?: string
           left_claim_id?: string | null
+          left_retrieval_hit_id?: string | null
           memory_dossier_id?: string | null
           right_claim_id?: string | null
+          right_retrieval_hit_id?: string | null
           severity?: string
           status?: string
           updated_at?: string
           workspace_id: string
         }
         Update: {
+          blocks_writing?: boolean
           conflict_type?: string
           created_at?: string
           created_by?: string
           description?: string
           id?: string
           left_claim_id?: string | null
+          left_retrieval_hit_id?: string | null
           memory_dossier_id?: string | null
           right_claim_id?: string | null
+          right_retrieval_hit_id?: string | null
           severity?: string
           status?: string
           updated_at?: string
@@ -585,6 +594,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "conflicts_left_retrieval_hit_id_fkey"
+            columns: ["left_retrieval_hit_id"]
+            isOneToOne: false
+            referencedRelation: "retrieval_hits"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conflicts_memory_dossier_id_fkey"
             columns: ["memory_dossier_id"]
             isOneToOne: false
@@ -596,6 +612,13 @@ export type Database = {
             columns: ["right_claim_id"]
             isOneToOne: false
             referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conflicts_right_retrieval_hit_id_fkey"
+            columns: ["right_retrieval_hit_id"]
+            isOneToOne: false
+            referencedRelation: "retrieval_hits"
             referencedColumns: ["id"]
           },
           {
@@ -662,6 +685,7 @@ export type Database = {
       }
       dossier_evidence: {
         Row: {
+          classification_rationale: string | null
           confidence: number | null
           created_at: string
           created_by: string
@@ -678,6 +702,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          classification_rationale?: string | null
           confidence?: number | null
           created_at?: string
           created_by: string
@@ -694,6 +719,7 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          classification_rationale?: string | null
           confidence?: number | null
           created_at?: string
           created_by?: string
@@ -856,14 +882,17 @@ export type Database = {
       }
       memory_dossiers: {
         Row: {
+          analyst_model: string | null
           approved_at: string | null
           approved_by: string | null
           created_at: string
           created_by: string
           dossier: Json
+          evidence_coverage: number | null
           executive_summary: string | null
           id: string
           question: string
+          prompt_version: string
           retrieval_session_id: string
           status: string
           title: string
@@ -871,14 +900,17 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          analyst_model?: string | null
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string
           created_by: string
           dossier?: Json
+          evidence_coverage?: number | null
           executive_summary?: string | null
           id?: string
           question: string
+          prompt_version?: string
           retrieval_session_id: string
           status?: string
           title: string
@@ -886,14 +918,17 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          analyst_model?: string | null
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string
           created_by?: string
           dossier?: Json
+          evidence_coverage?: number | null
           executive_summary?: string | null
           id?: string
           question?: string
+          prompt_version?: string
           retrieval_session_id?: string
           status?: string
           title?: string

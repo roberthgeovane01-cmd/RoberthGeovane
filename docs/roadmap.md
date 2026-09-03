@@ -7,7 +7,7 @@
 | 2    | Biblioteca, upload e extração                            | concluída |
 | 3    | Chunks, resumos, embeddings, conceitos e claims          | concluída |
 | 4    | Retrieval lexical, vetorial, híbrido e reranking         | concluída |
-| 5    | Evidências, conflitos, analista e dossiê                 | pendente  |
+| 5    | Evidências, conflitos, analista e dossiê                 | concluída |
 | 6    | Dataset fictício e avaliações                            | pendente  |
 | 7    | UI completa de Biblioteca e Memória                      | pendente  |
 | 8–14 | Áudio, mesa editorial, reflexão, estilo, voz e histórico | pendente  |
@@ -53,3 +53,15 @@
 
 OCR automatizado permanece uma entrega posterior. A Fase 5 parte desses
 resultados para classificar evidências, detectar conflitos e montar dossiês.
+
+## Critérios fechados na Fase 5
+
+- Query Planner separado do investigador, limitado a três consultas;
+- classificação em apoio, complemento, contradição, qualificação ou irrelevância;
+- conflitos factuais, temporais, interpretativos, de valor e entre fontes;
+- bloqueio da escrita em conflitos factuais graves até decisão humana;
+- Dossiê de Memória estruturado, analítico e separado da escrita literária;
+- referências obrigatórias para evidências e fontes em cada conclusão;
+- rejeição determinística de referências inventadas pelo modelo;
+- tela de revisão, resolução de conflitos e aprovação do dossiê;
+- prova transacional do bloqueio e da resolução, com rollback integral.

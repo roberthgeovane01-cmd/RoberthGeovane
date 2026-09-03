@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/server";
 
 import { searchMemory } from "./actions";
+import { createDossier } from "../dossiers/actions";
 
 export default async function MemorySearchPage({
   searchParams,
@@ -184,6 +185,12 @@ export default async function MemorySearchPage({
                 ))}
               </ul>
             </details>
+          ) : null}
+          {selectedHits.length > 0 ? (
+            <form action={createDossier} className="mt-6">
+              <input name="sessionId" type="hidden" value={session.id} />
+              <Button type="submit">Construir Dossiê de Memória</Button>
+            </form>
           ) : null}
         </section>
       ) : null}

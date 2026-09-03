@@ -6,10 +6,10 @@ import {
   vectorToPostgres,
 } from "@/lib/memory/ai-config";
 import {
-  expandRetrievalQueries,
   rankCandidates,
   type RetrievalCandidate,
 } from "@/lib/retrieval/ranking";
+import { planInvestigation } from "@/lib/retrieval/planner";
 import type { Database } from "@/types/database";
 
 export type RetrievalFilters = {
@@ -65,7 +65,8 @@ export async function runMemoryRetrieval(
       .eq("workspace_id", input.workspaceId)
       .eq("status", "active")
       .maybeSingle();
-    const queries = expandRetrievalQueries(input.query);
+    const investigationPlan = await planInvestigation(input.query);
+    const queries = investigationPlan.queries;
     const embeddings =
       embeddingSpace && isAiGatewayConfigured()
         ? await new GatewayEmbeddingProvider().embedTexts(queries)
@@ -83,7 +84,9 @@ export async function runMemoryRetrieval(
           embedding_space_id: embedding ? embeddingSpace?.id : null,
           ordinal,
           parameters: {
-            generated_by: ordinal === 0 ? "user" : "deterministic_expansion",
+            generated_by: ordinal === 0 ? "user" : "query_planner",
+            temporal_hints: investigationPlan.temporalHints,
+            topics: investigationPlan.topics,
           },
           query_text: query,
           query_type: ordinal === 0 ? "original" : "expansion",
