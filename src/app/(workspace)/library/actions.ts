@@ -79,6 +79,16 @@ async function sha256Hex(arrayBuffer: ArrayBuffer) {
   ).join("");
 }
 
+function tagSlug(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
 export async function prepareSourceUpload(
   input: PrepareSourceUploadInput,
 ): Promise<ActionFailure | PreparedUpload> {
@@ -125,9 +135,13 @@ export async function prepareSourceUpload(
     .from("sources")
     .insert({
       author_name: parsed.data.authorName || null,
+      authority_level: parsed.data.authorityLevel,
       created_by: userId,
       language: "pt-BR",
-      metadata: { ingestion: "library-upload-v1" },
+      metadata: {
+        category: parsed.data.category || null,
+        ingestion: "library-upload-v1",
+      },
       publication_year: parsed.data.publicationYear ?? null,
       source_type: parsed.data.sourceType,
       status: "uploading",
@@ -169,6 +183,33 @@ export async function prepareSourceUpload(
           : "Não foi possível registrar a versão do documento.",
       ok: false,
     };
+  }
+
+  for (const name of [...new Set(parsed.data.tags)]) {
+    const slug = tagSlug(name);
+    if (!slug) continue;
+    let { data: tag } = await supabase
+      .from("tags")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .eq("slug", slug)
+      .maybeSingle();
+    if (!tag) {
+      const created = await supabase
+        .from("tags")
+        .insert({ created_by: userId, name, slug, workspace_id: workspaceId })
+        .select("id")
+        .maybeSingle();
+      tag = created.data;
+    }
+    if (tag) {
+      await supabase.from("source_tags").insert({
+        created_by: userId,
+        source_id: source.id,
+        tag_id: tag.id,
+        workspace_id: workspaceId,
+      });
+    }
   }
 
   return {
@@ -234,7 +275,7 @@ export async function processUploadedSource(input: {
   const { data: version } = await supabase
     .from("source_versions")
     .select(
-      "id, original_filename, sha256, source_id, storage_path, extraction_status",
+      "id, original_filename, sha256, source_id, storage_path, extraction_status, sources(metadata)",
     )
     .eq("id", parsed.data.versionId)
     .eq("source_id", parsed.data.sourceId)
@@ -340,6 +381,11 @@ export async function processUploadedSource(input: {
       .from("sources")
       .update({
         metadata: {
+          ...(typeof version.sources?.metadata === "object" &&
+          version.sources.metadata &&
+          !Array.isArray(version.sources.metadata)
+            ? version.sources.metadata
+            : {}),
           ingestion: "library-upload-v1",
           extraction_quality: extraction.quality,
           extraction_warnings: extraction.warnings,

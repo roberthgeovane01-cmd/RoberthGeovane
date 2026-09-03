@@ -136,7 +136,9 @@ export function SourceUploadForm() {
       ).trim();
       prepared = await prepareSourceUpload({
         authorName: String(formData.get("authorName") ?? ""),
+        authorityLevel: Number(formData.get("authorityLevel") ?? 3),
         byteSize: file.size,
+        category: String(formData.get("category") ?? ""),
         mimeType,
         originalFilename: file.name,
         publicationYear: publicationYearValue
@@ -146,6 +148,10 @@ export function SourceUploadForm() {
         sourceType: String(
           formData.get("sourceType") ?? "book",
         ) as (typeof sourceTypes)[number],
+        tags: String(formData.get("tags") ?? "")
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
         title: String(formData.get("title") ?? ""),
       });
 
@@ -271,6 +277,54 @@ export function SourceUploadForm() {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label
+            className="mb-2 block text-sm font-semibold"
+            htmlFor="category"
+          >
+            Categoria
+          </label>
+          <Input
+            id="category"
+            maxLength={120}
+            name="category"
+            placeholder="Ex.: Filosofia"
+          />
+        </div>
+        <div>
+          <label
+            className="mb-2 block text-sm font-semibold"
+            htmlFor="authorityLevel"
+          >
+            Autoridade da fonte
+          </label>
+          <select
+            className="flex h-11 w-full rounded-xl border border-[#17233e]/15 bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#a6751d]"
+            defaultValue="3"
+            id="authorityLevel"
+            name="authorityLevel"
+          >
+            <option value="1">1 — referência informal</option>
+            <option value="2">2 — apoio contextual</option>
+            <option value="3">3 — autoridade moderada</option>
+            <option value="4">4 — alta autoridade</option>
+            <option value="5">5 — fonte canônica</option>
+          </select>
+        </div>
+        <div className="sm:col-span-2">
+          <label className="mb-2 block text-sm font-semibold" htmlFor="tags">
+            Tags
+          </label>
+          <Input
+            id="tags"
+            maxLength={480}
+            name="tags"
+            placeholder="memória, identidade, presença"
+          />
+          <p className="mt-2 text-xs text-[#637083]">
+            Até 8 tags, separadas por vírgula.
+          </p>
         </div>
         <div>
           <label className="mb-2 block text-sm font-semibold" htmlFor="file">

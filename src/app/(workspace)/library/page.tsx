@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { BookOpen, CheckCircle2, Clock3, FileWarning } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle2,
+  Clock3,
+  FileWarning,
+  Search,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 import { SourceUploadForm } from "@/components/library/source-upload-form";
 import { createClient } from "@/utils/supabase/server";
@@ -25,19 +33,47 @@ function formatBytes(bytes: number) {
   }).format(bytes / (megabytes ? 1_048_576 : 1_024));
 }
 
-export default async function LibraryPage() {
+export default async function LibraryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    authority?: string;
+    q?: string;
+    status?: string;
+    type?: string;
+  }>;
+}) {
+  const filters = await searchParams;
   const supabase = await createClient();
-  const { data: sources, error } = await supabase
+  const { data: sourceRows, error } = await supabase
     .from("sources")
     .select(
-      "id, title, author_name, source_type, status, created_at, source_versions(id, original_filename, byte_size, extraction_status, created_at)",
+      "id, title, author_name, source_type, status, authority_level, metadata, created_at, source_tags(tags(id, name, color)), source_versions(id, original_filename, byte_size, extraction_status, memory_status, created_at)",
     )
     .order("created_at", { ascending: false });
 
+  const query = filters.q?.trim().toLocaleLowerCase("pt-BR") ?? "";
+  const sources = (sourceRows ?? []).filter((source) => {
+    const matchesQuery =
+      !query ||
+      source.title.toLocaleLowerCase("pt-BR").includes(query) ||
+      source.author_name?.toLocaleLowerCase("pt-BR").includes(query) ||
+      source.source_tags.some((item) =>
+        item.tags?.name.toLocaleLowerCase("pt-BR").includes(query),
+      );
+    return (
+      matchesQuery &&
+      (!filters.type || source.source_type === filters.type) &&
+      (!filters.status || source.status === filters.status) &&
+      (!filters.authority ||
+        source.authority_level >= Number(filters.authority))
+    );
+  });
+
   const readyCount =
-    sources?.filter((source) => source.status === "ready").length ?? 0;
+    sourceRows?.filter((source) => source.status === "ready").length ?? 0;
   const attentionCount =
-    sources?.filter(
+    sourceRows?.filter(
       (source) => source.status === "failed" || source.status === "processing",
     ).length ?? 0;
 
@@ -68,6 +104,65 @@ export default async function LibraryPage() {
         </div>
       </header>
 
+      <form
+        className="mt-7 grid gap-3 rounded-2xl border border-[#17233e]/10 bg-white p-4 sm:grid-cols-[1fr_repeat(3,auto)]"
+        method="get"
+      >
+        <label className="relative">
+          <span className="sr-only">Pesquisar título, autor ou tag</span>
+          <Search
+            aria-hidden="true"
+            className="absolute left-3 top-3 text-[#637083]"
+            size={18}
+          />
+          <input
+            className="min-h-11 w-full rounded-xl border border-[#17233e]/15 pl-10 pr-3 text-sm"
+            defaultValue={filters.q}
+            name="q"
+            placeholder="Título, autor ou tag"
+          />
+        </label>
+        <select
+          aria-label="Filtrar por tipo"
+          className="min-h-11 rounded-xl border border-[#17233e]/15 px-3 text-sm"
+          defaultValue={filters.type ?? ""}
+          name="type"
+        >
+          <option value="">Todos os tipos</option>
+          <option value="book">Livros</option>
+          <option value="article">Artigos</option>
+          <option value="document">Documentos</option>
+          <option value="note">Notas</option>
+          <option value="other">Outros</option>
+        </select>
+        <select
+          aria-label="Filtrar por estado"
+          className="min-h-11 rounded-xl border border-[#17233e]/15 px-3 text-sm"
+          defaultValue={filters.status ?? ""}
+          name="status"
+        >
+          <option value="">Todos os estados</option>
+          <option value="ready">Disponível</option>
+          <option value="processing">Processando</option>
+          <option value="failed">Falhou</option>
+          <option value="archived">Arquivado</option>
+        </select>
+        <div className="flex gap-2">
+          <select
+            aria-label="Autoridade mínima"
+            className="min-h-11 rounded-xl border border-[#17233e]/15 px-3 text-sm"
+            defaultValue={filters.authority ?? ""}
+            name="authority"
+          >
+            <option value="">Autoridade</option>
+            <option value="3">3+</option>
+            <option value="4">4+</option>
+            <option value="5">5</option>
+          </select>
+          <Button type="submit">Filtrar</Button>
+        </div>
+      </form>
+
       <div className="mt-9 grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)]">
         <section aria-labelledby="library-list-title">
           <div className="mb-4 flex items-center justify-between">
@@ -75,7 +170,7 @@ export default async function LibraryPage() {
               Acervo
             </h2>
             <span className="text-sm text-[#637083]">
-              {sources?.length ?? 0} fontes
+              {sources.length} de {sourceRows?.length ?? 0} fontes
             </span>
           </div>
 
@@ -83,7 +178,7 @@ export default async function LibraryPage() {
             <p className="rounded-2xl border border-[#8a3d32]/20 bg-[#8a3d32]/5 p-5 text-sm text-[#8a3d32]">
               Não foi possível consultar a Biblioteca.
             </p>
-          ) : sources && sources.length > 0 ? (
+          ) : sources.length > 0 ? (
             <ul className="space-y-4">
               {sources.map((source) => {
                 const version = [...source.source_versions].sort((a, b) =>
@@ -121,6 +216,30 @@ export default async function LibraryPage() {
                       <p className="mt-1 text-sm text-[#637083]">
                         {source.author_name || "Autor não informado"}
                       </p>
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                        <span className="rounded-full bg-[#17233e]/5 px-2.5 py-1">
+                          Autoridade {source.authority_level}/5
+                        </span>
+                        {typeof source.metadata === "object" &&
+                        source.metadata &&
+                        !Array.isArray(source.metadata) &&
+                        "category" in source.metadata &&
+                        source.metadata.category ? (
+                          <span className="rounded-full bg-[#a6751d]/10 px-2.5 py-1 text-[#7b5617]">
+                            {String(source.metadata.category)}
+                          </span>
+                        ) : null}
+                        {source.source_tags.map((item) =>
+                          item.tags ? (
+                            <span
+                              className="rounded-full border border-[#17233e]/10 px-2.5 py-1"
+                              key={item.tags.id}
+                            >
+                              #{item.tags.name}
+                            </span>
+                          ) : null,
+                        )}
+                      </div>
                       {version ? (
                         <p className="mt-4 truncate border-t border-[#17233e]/8 pt-4 text-xs text-[#637083]">
                           {version.original_filename} ·{" "}
@@ -128,6 +247,7 @@ export default async function LibraryPage() {
                           {version.extraction_status === "ocr_required"
                             ? " · OCR necessário"
                             : ""}
+                          {` · memória ${version.memory_status}`}
                         </p>
                       ) : null}
                     </Link>

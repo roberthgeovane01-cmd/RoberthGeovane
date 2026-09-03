@@ -67,6 +67,19 @@ export default async function SourcePage({ params }: SourcePageProps) {
   let summaryCount = 0;
   let claimCount = 0;
   let conceptCount = 0;
+  let embeddedChunkCount = 0;
+  let globalSummary: string | null = null;
+  let sourceConcepts: Array<{
+    id: string;
+    relevance: number | null;
+    concepts: { name: string; description: string | null } | null;
+  }> = [];
+  let sourceClaims: Array<{
+    confidence: number;
+    id: string;
+    statement: string;
+    status: string;
+  }> = [];
   let latestJob: Pick<
     Tables<"processing_jobs">,
     "status" | "current_step" | "progress" | "error_message"
@@ -79,6 +92,10 @@ export default async function SourcePage({ params }: SourcePageProps) {
       summariesResult,
       claimsResult,
       conceptsResult,
+      embeddedChunksResult,
+      globalSummaryResult,
+      sourceConceptsResult,
+      sourceClaimsResult,
       jobResult,
     ] = await Promise.all([
       supabase
@@ -105,6 +122,31 @@ export default async function SourcePage({ params }: SourcePageProps) {
         .select("id", { count: "exact", head: true })
         .eq("source_id", source.id),
       supabase
+        .from("source_chunks")
+        .select("id", { count: "exact", head: true })
+        .eq("source_version_id", currentVersion.id)
+        .not("embedding", "is", null),
+      supabase
+        .from("source_summaries")
+        .select("content")
+        .eq("source_version_id", currentVersion.id)
+        .eq("summary_kind", "source")
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("source_concepts")
+        .select("id, relevance, concepts(name, description)")
+        .eq("source_id", source.id)
+        .order("relevance", { ascending: false })
+        .limit(20),
+      supabase
+        .from("claims")
+        .select("id, statement, confidence, status")
+        .eq("source_version_id", currentVersion.id)
+        .order("confidence", { ascending: false })
+        .limit(12),
+      supabase
         .from("processing_jobs")
         .select("status, current_step, progress, error_message")
         .eq("entity_id", currentVersion.id)
@@ -118,6 +160,10 @@ export default async function SourcePage({ params }: SourcePageProps) {
     summaryCount = summariesResult.count ?? 0;
     claimCount = claimsResult.count ?? 0;
     conceptCount = conceptsResult.count ?? 0;
+    embeddedChunkCount = embeddedChunksResult.count ?? 0;
+    globalSummary = globalSummaryResult.data?.content ?? null;
+    sourceConcepts = sourceConceptsResult.data ?? [];
+    sourceClaims = sourceClaimsResult.data ?? [];
     latestJob = jobResult.data;
   }
 
@@ -300,6 +346,93 @@ export default async function SourcePage({ params }: SourcePageProps) {
               />
             </div>
           ) : null}
+        </section>
+      ) : null}
+
+      {currentVersion?.memory_status === "ready" ? (
+        <section
+          className="mt-9 grid gap-5 lg:grid-cols-[1.15fr_.85fr]"
+          aria-label="Camadas semânticas do documento"
+        >
+          <article className="rounded-[2rem] border border-[#17233e]/10 bg-white p-6 sm:p-7">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a6751d]">
+              Resumo global
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold">
+              O documento em perspectiva
+            </h2>
+            <p className="mt-4 whitespace-pre-line text-sm leading-7 text-[#637083]">
+              {globalSummary ?? "O resumo global ainda não foi produzido."}
+            </p>
+          </article>
+          <aside className="rounded-[2rem] border border-[#17233e]/10 bg-[#f5f0e5]/70 p-6 sm:p-7">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#637083]">
+                  Embeddings
+                </p>
+                <p className="mt-1 font-semibold">
+                  {embeddedChunkCount}/{chunkCount} chunks vetorizados
+                </p>
+              </div>
+              <span
+                className={`size-3 rounded-full ${embeddedChunkCount === chunkCount && chunkCount > 0 ? "bg-[#536a5b]" : "bg-[#a6751d]"}`}
+                aria-label={
+                  embeddedChunkCount === chunkCount && chunkCount > 0
+                    ? "Vetorização concluída"
+                    : "Vetorização parcial"
+                }
+              />
+            </div>
+            <h2 className="mt-6 text-xl font-semibold">Conceitos vinculados</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {sourceConcepts.length ? (
+                sourceConcepts.map((item) =>
+                  item.concepts ? (
+                    <span
+                      className="rounded-full border border-[#17233e]/10 bg-white px-3 py-2 text-sm"
+                      key={item.id}
+                      title={item.concepts.description ?? undefined}
+                    >
+                      {item.concepts.name}
+                      {item.relevance !== null
+                        ? ` · ${Math.round(item.relevance * 100)}%`
+                        : ""}
+                    </span>
+                  ) : null,
+                )
+              ) : (
+                <p className="text-sm text-[#637083]">
+                  Nenhum conceito confirmado.
+                </p>
+              )}
+            </div>
+          </aside>
+        </section>
+      ) : null}
+
+      {sourceClaims.length > 0 ? (
+        <section className="mt-9" aria-labelledby="claims-title">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a6751d]">
+            Evidência derivada
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold" id="claims-title">
+            Afirmações rastreáveis
+          </h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {sourceClaims.map((claim) => (
+              <article
+                className="rounded-2xl border border-[#17233e]/10 bg-white p-5"
+                key={claim.id}
+              >
+                <div className="flex items-center justify-between gap-3 text-xs text-[#637083]">
+                  <span>{claim.status}</span>
+                  <span>{Math.round(claim.confidence * 100)}% confiança</span>
+                </div>
+                <p className="mt-3 text-sm leading-7">{claim.statement}</p>
+              </article>
+            ))}
+          </div>
         </section>
       ) : null}
 

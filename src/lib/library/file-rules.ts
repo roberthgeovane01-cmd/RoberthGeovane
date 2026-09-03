@@ -97,12 +97,15 @@ export function validateDocumentFile(input: {
 export const prepareSourceUploadSchema = z
   .object({
     authorName: z.string().trim().max(240).optional(),
+    authorityLevel: z.number().int().min(1).max(5).default(3),
     byteSize: z.number().int().positive().max(MAX_DOCUMENT_BYTES),
+    category: z.string().trim().max(120).optional(),
     mimeType: z.string().trim().min(1).max(200),
     originalFilename: z.string().trim().min(1).max(255),
     publicationYear: z.number().int().min(1).max(9999).optional(),
     sha256: z.string().regex(/^[a-f0-9]{64}$/),
     sourceType: z.enum(sourceTypes),
+    tags: z.array(z.string().trim().min(1).max(60)).max(8).default([]),
     title: z.string().trim().min(1).max(500),
   })
   .superRefine((value, context) => {

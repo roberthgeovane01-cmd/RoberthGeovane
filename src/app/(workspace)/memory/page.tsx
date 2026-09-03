@@ -124,6 +124,12 @@ export default async function MemoryPage() {
             >
               <Link href="/memory/search">Buscar na memória</Link>
             </Button>
+            <Button
+              asChild
+              className="ml-3 mt-6 bg-white/10 text-white hover:bg-white/20"
+            >
+              <Link href="/memory/explore">Explorar camadas</Link>
+            </Button>
             <Button asChild className="ml-3 mt-6" variant="secondary">
               <Link href="/memory/evaluation">Avaliar recuperação</Link>
             </Button>
