@@ -1,6 +1,6 @@
 # Banco de dados
 
-O schema canônico contém 39 tabelas de domínio, agrupadas em identidade,
+O schema canônico contém 41 tabelas de domínio, agrupadas em identidade,
 biblioteca, memória, investigação, áudio/reflexão, estilo/voz e infraestrutura.
 
 ## Convenções

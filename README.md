@@ -13,7 +13,7 @@ estão implementadas:
 - Next.js 16, React 19, TypeScript e Tailwind CSS;
 - componentes no padrão shadcn/ui;
 - Supabase Auth com sessão SSR;
-- 39 tabelas de domínio;
+- 41 tabelas de domínio;
 - Row Level Security por workspace;
 - pgvector, busca textual em português e índices HNSW;
 - três buckets privados;

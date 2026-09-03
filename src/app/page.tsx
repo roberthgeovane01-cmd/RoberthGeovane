@@ -73,7 +73,7 @@ export default async function Home() {
               {[
                 [
                   Database,
-                  "39 entidades de domínio",
+                  "41 entidades de domínio",
                   "Schema versionado e preparado para rastreabilidade.",
                 ],
                 [
